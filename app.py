@@ -54,7 +54,7 @@ def login():
         if user_details:
             if check_password_hash(user_details[2], password):
                 session['username'] = username
-                return redirect(url_for('restricted_content'))
+                return redirect(url_for('restricted_content1'))
             else:
                 login_error = "Incorrect Username/Password"  
                 return render_template("login.html", error = login_error)
@@ -82,6 +82,11 @@ def content2():
 def content3():
     return render_template("content3.html")
 
+@app.route("/restricted_content2", methods = ["GET"])
+@helper.auth.login_required
+def restricted_content2():
+    return render_template("restricted_content2.html")
+    
 # Google Login  
 def login_is_required(function): 
     def wrapper(*args, **kwargs):
@@ -93,10 +98,10 @@ def login_is_required(function):
     return wrapper
 
 @login_is_required    
-@app.route("/restricted_content", methods = ["GET"])
-def restricted_content():
+@app.route("/restricted_content1", methods = ["GET"])
+def restricted_content1():
     if 'username' in session:
-        return render_template("restricted_content.html", username = session['username'])
+        return render_template("restricted_content1.html", username = session['username'])
     else:
         return redirect(url_for('login'))
 
@@ -127,9 +132,11 @@ def callback():
     session["username"] = id_info.get("name")
     session["email"] = id_info.get("email")
 
-    return redirect("/restricted_content")
+    return redirect("/restricted_content1")
 
 
 if __name__ == "__main__":
+
     GOOGLE_CLIENT_ID, flow = helper.setup_google_login()
+    
     app.run(debug=True)

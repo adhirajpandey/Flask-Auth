@@ -2,6 +2,9 @@ import os
 import pathlib
 from google_auth_oauthlib.flow import Flow
 from dotenv import load_dotenv
+from flask_httpauth import HTTPBasicAuth
+
+auth = HTTPBasicAuth()
 
 load_dotenv()
 
@@ -28,3 +31,14 @@ def input_validation(username, password):
     else:
         return True
     
+def setup_http_auth_users():
+    users = {
+    os.getenv("HTTP_AUTH_USER") : os.getenv("HTTP_AUTH_PASS")
+    }
+    return users
+
+@auth.verify_password
+def verify_password(username, password):
+    users = setup_http_auth_users()
+    if username in users and password == users[username]:
+        return username

@@ -3,6 +3,12 @@
 
 {% block content %}
 
-<h1>Restricted Content</h1>
+<h1>Restricted Content.</h1>
+
+<h2> USER IS {{ username }} </h2>
+
+<div class="text-center">
+    <button class="btn btn-danger btn-block"><a href="/logout" style = "color: white ; text-decoration : none">Logout</a></button>
+</div>
 
 {% endblock content %}

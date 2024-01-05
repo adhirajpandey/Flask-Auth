@@ -3,39 +3,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import dao
 import helper
 import os
-import requests
 
-import os
-import pathlib
-import requests
 from google.oauth2 import id_token
-from google_auth_oauthlib.flow import Flow
-from pip._vendor import cachecontrol
-from google.auth.transport.requests import Request
+from google.auth.transport.requests import Request as google_request
 
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12)
 
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1" 
-
-GOOGLE_CLIENT_ID = ""  
-client_secrets_file = os.path.join(pathlib.Path(__file__).parent, "client_secret.json")  
-
-flow = Flow.from_client_secrets_file( 
-    client_secrets_file=client_secrets_file,
-    scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"],  
-    redirect_uri="http://127.0.0.1:5000/callback"  
-)
-
-def login_is_required(function): 
-    def wrapper(*args, **kwargs):
-        if "google_id" not in session:
-            return abort(401)
-        else:
-            return function()
-
-    return wrapper
 
 @app.route("/", methods = ["GET"])
 @app.route("/index", methods = ["GET"])
@@ -95,14 +70,6 @@ def logout():
     else:
         return redirect(url_for('index'))
 
-@login_is_required    
-@app.route("/restricted_content", methods = ["GET"])
-def restricted_content():
-    if 'username' in session:
-        return render_template("restricted_content.html", username = session['username'])
-    else:
-        return redirect(url_for('login'))
-
 @app.route("/content1", methods = ["GET"])
 def content1():
     return render_template("content1.html")
@@ -115,31 +82,47 @@ def content2():
 def content3():
     return render_template("content3.html")
 
+# Google Login  
+def login_is_required(function): 
+    def wrapper(*args, **kwargs):
+        if "google_id" not in session:
+            return abort(401)
+        else:
+            return function()
+
+    return wrapper
+
+@login_is_required    
+@app.route("/restricted_content", methods = ["GET"])
+def restricted_content():
+    if 'username' in session:
+        return render_template("restricted_content.html", username = session['username'])
+    else:
+        return redirect(url_for('login'))
+
 @app.route("/google_login", methods = ["GET", "POST"])
 def google_login():
-        authorization_url, state = flow.authorization_url()
-        session['state'] = state
-        return redirect(authorization_url)
+    authorization_url, state = flow.authorization_url()
+    session['state'] = state
+    return redirect(authorization_url)
 
-
-@app.route("/callback")
+@app.route("/callback", methods = ["GET", "POST"])
 def callback():
     flow.fetch_token(authorization_response=request.url)
 
     if not session["state"] == request.args["state"]:
-        abort(500)  #state does not match!
+        abort(500)
 
     credentials = flow.credentials
-    request_session = requests.session()
-    cached_session = cachecontrol.CacheControl(request_session)
-    token_request = Request(session=cached_session)
 
+    # Use the access token to verify the ID token
     id_info = id_token.verify_oauth2_token(
         id_token=credentials._id_token,
-        request=token_request,
+        request=google_request(),
         audience=GOOGLE_CLIENT_ID
     )
 
+    # Store user information in the session
     session["google_id"] = id_info.get("sub") 
     session["username"] = id_info.get("name")
     session["email"] = id_info.get("email")
@@ -147,4 +130,6 @@ def callback():
     return redirect("/restricted_content")
 
 
-app.run(debug=True)
+if __name__ == "__main__":
+    GOOGLE_CLIENT_ID, flow = helper.setup_google_login()
+    app.run(debug=True)

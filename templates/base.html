@@ -24,6 +24,11 @@
             <li class="nav-item">
               <a class="nav-link" href="/content3">Content 3</a>
             </li>
+            {% if 'username' in session %}
+            <li class="nav-item">
+              <a class="nav-link" href="/restricted_content">Private</a>
+            </li>
+            {% endif %}
           </ul>
             <div class="d-flex" >
               <a href="/register" style = "color: white ; text-decoration : none"><button class="btn btn-primary">Register</button></a>

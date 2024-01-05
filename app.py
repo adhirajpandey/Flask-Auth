@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for
+import dao
 
 
 app = Flask(__name__)
@@ -15,7 +16,10 @@ def register():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        print(username, password)
+        if dao.check_if_username_exists(username):
+            print("username already exists")
+        else:
+            dao.insert_username_password_admin(username, password, False)
 
         return redirect(url_for('index'))
 
@@ -26,9 +30,16 @@ def login():
     if request.method == "POST":
         username = request.form.get('username')
         password = request.form.get('password')
+        
+        user_details = dao.fetch_user_by_username(username)
 
-        print(username, password)
-        return redirect(url_for('content'))
+        if user_details:
+            if user_details[2] == password:
+                print("login successful")
+                return redirect(url_for('content'))
+            else:
+                print("password incorrect")
+                return redirect(url_for('login'))
 
     return render_template("login.html")
 

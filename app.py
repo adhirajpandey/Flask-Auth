@@ -27,7 +27,7 @@ def register():
         else:
             dao.insert_username_password_admin(username, hashed_password, False)
 
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
 
     return render_template("register.html")
 
@@ -46,19 +46,12 @@ def login():
         if user_details:
             if check_password_hash(user_details[2], password):
                 session['username'] = username
-                return redirect(url_for('content'))
+                return redirect(url_for('restricted_content'))
             else:
                 login_error = "Incorrect Password"  
                 return render_template("login.html", error = login_error)
 
     return render_template("login.html")
-
-@app.route("/content", methods = ["GET"])
-def content():
-    if 'username' in session:
-        return render_template("content.html", username = session['username'])
-    else:
-        return redirect(url_for('login'))
 
 @app.route("/logout", methods = ["GET"])
 def logout():
@@ -67,5 +60,24 @@ def logout():
         return redirect(url_for('login'))
     else:
         return redirect(url_for('index'))
+    
+@app.route("/restricted_content", methods = ["GET"])
+def restricted_content():
+    if 'username' in session:
+        return render_template("restricted_content.html", username = session['username'])
+    else:
+        return redirect(url_for('login'))
+
+@app.route("/content1", methods = ["GET"])
+def content1():
+    return render_template("content1.html")
+
+@app.route("/content2", methods = ["GET"])
+def content2():
+    return render_template("content2.html")
+
+@app.route("/content3", methods = ["GET"])
+def content3():
+    return render_template("content3.html")
 
 app.run(debug=True)

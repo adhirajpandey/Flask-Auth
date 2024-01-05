@@ -17,7 +17,8 @@ def register():
         password = request.form.get('password')
 
         if dao.check_if_username_exists(username):
-            print("username already exists")
+            register_error = "Username already exists"
+            return render_template("register.html", error = register_error)
         else:
             dao.insert_username_password_admin(username, password, False)
 
@@ -35,11 +36,10 @@ def login():
 
         if user_details:
             if user_details[2] == password:
-                print("login successful")
                 return redirect(url_for('content'))
             else:
-                print("password incorrect")
-                return redirect(url_for('login'))
+                login_error = "Incorrect Password"
+                return render_template("login.html", error = login_error)
 
     return render_template("login.html")
 

@@ -54,6 +54,7 @@ def login():
         if user_details:
             if check_password_hash(user_details[2], password):
                 session['username'] = username
+                session['admin'] = user_details[3]
                 return redirect(url_for('restricted_content1'))
             else:
                 login_error = "Incorrect Username/Password"  
@@ -81,6 +82,14 @@ def content2():
 @app.route("/content3", methods = ["GET"])
 def content3():
     return render_template("content3.html")
+
+@app.route("/restricted_content3", methods = ["GET"])
+def restricted_content3():
+    if 'username' in session and session['admin'] == 1:
+        return render_template("restricted_content3.html", usersdata = dao.fetch_all_users())
+    else:
+        return redirect(url_for('login'))
+        
 
 @app.route("/restricted_content2", methods = ["GET"])
 @helper.auth.login_required
@@ -133,6 +142,16 @@ def callback():
     session["email"] = id_info.get("email")
 
     return redirect("/restricted_content1")
+
+
+@app.route("/delete_user", methods = ["POST"])
+def delete_user():
+    if 'username' in session and session['admin'] == 1:
+        username = request.form.get('username')
+        dao.delete_user(username)
+        return redirect(url_for('restricted_content3'))
+    else:
+        return redirect(url_for('login'))
 
 
 if __name__ == "__main__":

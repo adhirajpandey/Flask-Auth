@@ -29,6 +29,11 @@
               <a class="nav-link {% if request.path == '/restricted_content1' %} active {% endif %}" href="/restricted_content1">Private</a>
             </li>
             {% endif %}
+            {% if session['admin'] == 1 %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/restricted_content3' %} active {% endif %}" href="/restricted_content3">Admin</a>
+            </li>
+            {% endif %}
           </ul>
             <div class="d-flex" >
               <a href="/register" style = "color: white ; text-decoration : none"><button class="btn btn-primary">Register</button></a>

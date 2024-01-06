@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Restricted Content 3</h1>
+
+{% if usersdata %}
+<div class="center table table-bordered" style="text-align: center; margin: auto; width: 50%;">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">S.No</th>
+                <th scope="col">Username</th>
+                <th scope="col">Admin</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in usersdata %}
+            <tr>
+                <th scope="row">{{ loop.index }}</th>
+                <td>{{ user[1] }}</td>
+                <td>{{ user[3] }}</td>
+                <td>
+                    <form action="/delete_user" method="POST">
+                        <input type="hidden" name="username" value="{{ user[1] }}">
+                        <button type="submit" class="btn btn-danger btn-block" onclick="location.reload()">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock content %}

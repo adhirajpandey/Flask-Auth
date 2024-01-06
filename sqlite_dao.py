@@ -74,5 +74,12 @@ def check_if_admin(username: str):
     else:
         return False
 
+def delete_user(username: str):
+    conn = connect_sqlite()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM users WHERE username=?", (username,))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 create_table()

@@ -20,7 +20,13 @@
             <tr>
                 <th scope="row">{{ loop.index }}</th>
                 <td>{{ user[1] }}</td>
-                <td>{{ user[3] }}</td>
+                <td>
+                    {% if user[3] == 1 %}
+                        Yes
+                    {% else %}
+                        No
+                    {% endif %}
+                </td>
                 <td>
                     <div class="btn-group" role="group">
                         <form action="/delete_user" method="POST">

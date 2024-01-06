@@ -1,12 +1,18 @@
 from flask import Flask, request, render_template, redirect, url_for, session, abort, Request, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
-import dao
 import helper
 import os
 
 from google.oauth2 import id_token
 from google.auth.transport.requests import Request as google_request
 
+DB_CHOICE = helper.get_db_choice()
+
+if DB_CHOICE == "sqlite":
+    import sqlite_dao as dao
+else:
+    import pg_dao as dao
+    
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12)

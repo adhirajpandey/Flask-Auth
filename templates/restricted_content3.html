@@ -22,10 +22,19 @@
                 <td>{{ user[1] }}</td>
                 <td>{{ user[3] }}</td>
                 <td>
-                    <form action="/delete_user" method="POST">
-                        <input type="hidden" name="username" value="{{ user[1] }}">
-                        <button type="submit" class="btn btn-danger btn-block" onclick="location.reload()">Delete</button>
-                    </form>
+                    <div class="btn-group" role="group">
+                        <form action="/delete_user" method="POST">
+                            <input type="hidden" name="username" value="{{ user[1] }}">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                        {% if user[3] == 0 %}
+                        &nbsp;
+                        <form action="/escalate_user" method="POST">
+                            <input type="hidden" name="username" value="{{ user[1] }}">
+                            <button type="submit" class="btn btn-success">Escalate</button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% endfor %}

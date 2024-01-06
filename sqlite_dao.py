@@ -82,4 +82,12 @@ def delete_user(username: str):
     cursor.close()
     conn.close()
 
+def escalate_user(username: str):
+    conn = connect_sqlite()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET admin=1 WHERE username=?", (username,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
 create_table()

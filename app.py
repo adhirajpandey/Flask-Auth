@@ -152,6 +152,15 @@ def delete_user():
         return redirect(url_for('restricted_content3'))
     else:
         return redirect(url_for('login'))
+    
+@app.route("/escalate_user", methods = ["POST"])
+def escalate_user():
+    if 'username' in session and session['admin'] == 1:
+        username = request.form.get('username')
+        dao.escalate_user(username)
+        return redirect(url_for('restricted_content3'))
+    else:
+        return redirect(url_for('login'))
 
 
 if __name__ == "__main__":

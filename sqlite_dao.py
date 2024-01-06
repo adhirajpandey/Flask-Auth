@@ -1,11 +1,8 @@
 import sqlite3
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 
 DB_FILE_PATH = "database.db"
+
 
 def connect_sqlite():
     try:
@@ -14,6 +11,7 @@ def connect_sqlite():
     except:
         print("Unable to connect to the database")
         return None
+
 
 conn = connect_sqlite()
 
@@ -75,5 +73,6 @@ def check_if_admin(username: str):
         return True
     else:
         return False
+
 
 create_table()

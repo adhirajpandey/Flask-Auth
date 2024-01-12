@@ -9,6 +9,12 @@ from google.auth.transport.requests import Request as google_request
 
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
+from flask_wtf.recaptcha import RecaptchaField
+import requests
+from flask_wtf import FlaskForm
+from wtforms import TextAreaField, SubmitField
+from wtforms.validators import DataRequired
+
 
 GOOGLE_CLIENT_ID, flow = helper.setup_google_login()
 
@@ -16,33 +22,62 @@ GOOGLE_CLIENT_ID, flow = helper.setup_google_login()
 app.config["JWT_SECRET_KEY"] = os.urandom(12)
 jwt = JWTManager(app)
 
+# Setup Captcha
+class CommentForm(FlaskForm):
+    comment = TextAreaField('Comment', validators=[DataRequired()])
+    recaptcha = RecaptchaField()
+    submit = SubmitField('Post')
+
+app.config['RECAPTCHA_PUBLIC_KEY'] = os.environ.get('RECAPTCHA_PUBLIC_KEY')
+app.config['RECAPTCHA_PRIVATE_KEY'] = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+
 
 @app.route("/", methods = ["GET"])
 @app.route("/index", methods = ["GET"])
 def index():
     return render_template("index.html")
 
-@app.route("/register", methods = ["GET", "POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    form = CommentForm()
+
     if request.method == "POST":
         username = request.form.get('username')
         password = request.form.get('password')
 
+        # Validate reCAPTCHA
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response:
+            register_error = "Please complete the reCAPTCHA."
+            return render_template("register.html", error=register_error, form=form)
+
+        # Verify reCAPTCHA response
+        recaptcha_data = {
+            'secret': app.config['RECAPTCHA_PRIVATE_KEY'],
+            'response': recaptcha_response,
+        }
+        recaptcha_verify_response = requests.post('https://www.google.com/recaptcha/api/siteverify', data=recaptcha_data)
+        recaptcha_verify_data = recaptcha_verify_response.json()
+
+        if not recaptcha_verify_data['success']:
+            register_error = "reCAPTCHA verification failed."
+            return render_template("register.html", error=register_error, form=form)
+
         if not helper.input_validation(username, password):
-            register_error = "Invalid Input Values, Try Again !"
-            return render_template("register.html", error = register_error)
+            register_error = "Invalid Input Values, Try Again!"
+            return render_template("register.html", error=register_error, form=form)
 
         hashed_password = generate_password_hash(password)
 
         if dao.check_if_username_exists(username):
             register_error = "Username already exists"
-            return render_template("register.html", error = register_error)
+            return render_template("register.html", error=register_error, form=form)
         else:
             dao.insert_username_password_admin(username, hashed_password, False)
 
         return redirect(url_for('login'))
 
-    return render_template("register.html")
+    return render_template("register.html", form=form)
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():

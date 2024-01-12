@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, session, abort, Request, redirect
+from flask import Flask, request, render_template, redirect, url_for, session, abort, Request, redirect, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import helper
 import os
@@ -7,9 +7,16 @@ import sqlite_dao as dao
 from google.oauth2 import id_token
 from google.auth.transport.requests import Request as google_request
 
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12)
+
+# Setup the Flask-JWT-Extended
+app.config["JWT_SECRET_KEY"] = os.urandom(12)
+jwt = JWTManager(app)
 
 
 @app.route("/", methods = ["GET"])
@@ -161,7 +168,39 @@ def escalate_user():
         return redirect(url_for('restricted_content3'))
     else:
         return redirect(url_for('login'))
+    
 
+@app.route("/jwt_token", methods = ["POST"])
+def hello():
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+
+    user = {"id": 1, "username": "test", "password": "test1"}
+
+    if username != user["username"] or password != user["password"]:
+        # The user entered bad credentials
+        return jsonify({"msg": "Bad username or password"}), 401
+    
+    # Create a new token with the user id inside
+    access_token = create_access_token(identity=user['id'])
+    return jsonify({ "token": access_token, "user_id": user['id'] })
+
+
+# Protect a route with jwt_required, which will kick out requests without a valid JWT
+@app.route("/jwt_protected", methods=["GET"])
+@jwt_required()
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user_id = get_jwt_identity()
+    print(current_user_id)
+    users = [{"id": 1, "username": "test1", "password": "pass1", "protected_data": "This is protected"},
+                {"id": 2, "username": "test2", "password": "pass2", "protected_data": "This is also protected"}]
+    
+    for user in users:
+        if user["id"] == current_user_id:
+            return jsonify({"protected_data": user["protected_data"]})
+        else:
+            return jsonify({"msg": "Not found"}), 404
 
 if __name__ == "__main__":
 

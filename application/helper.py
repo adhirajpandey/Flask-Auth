@@ -42,8 +42,4 @@ def verify_password(username, password):
     users = setup_http_auth_users()
     if username in users and password == users[username]:
         return username
-    
 
-def get_db_choice():
-    db_choice = os.getenv("DB_CHOICE")
-    return db_choice

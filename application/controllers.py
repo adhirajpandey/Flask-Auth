@@ -1,8 +1,8 @@
-from flask import Flask, request, render_template, redirect, url_for, session, abort, Request, redirect, jsonify
+from flask import current_app as app, request, render_template, redirect, url_for, session, abort, Request, redirect, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-import helper
+import application.helper as helper
 import os
-import sqlite_dao as dao
+import application.sqlite_dao as dao
 
 from google.oauth2 import id_token
 from google.auth.transport.requests import Request as google_request
@@ -10,9 +10,7 @@ from google.auth.transport.requests import Request as google_request
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 
-
-app = Flask(__name__)
-app.secret_key = os.urandom(12)
+GOOGLE_CLIENT_ID, flow = helper.setup_google_login()
 
 # Setup the Flask-JWT-Extended
 app.config["JWT_SECRET_KEY"] = os.urandom(12)
@@ -204,6 +202,6 @@ def protected():
 
 if __name__ == "__main__":
 
-    GOOGLE_CLIENT_ID, flow = helper.setup_google_login()
+    
     
     app.run(debug=True)

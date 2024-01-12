@@ -1,7 +1,7 @@
 import sqlite3
 
 
-DB_FILE_PATH = "database.db"
+DB_FILE_PATH = "./db_directory/database.db"
 
 
 def connect_sqlite():
